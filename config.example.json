@@ -1,0 +1,20 @@
+{
+    "_comment": "System Save Eternal - Configuracao",
+    "save_repo_path": "",
+    "github": {
+        "token": "",
+        "repo_url": "",
+        "remote_name": "origin"
+    },
+    "google_drive": {
+        "client_id": "",
+        "client_secret": "",
+        "folder_id": ""
+    },
+    "telegram": {
+        "api_id": 0,
+        "api_hash": "",
+        "phone": "",
+        "chat_id": ""
+    }
+}
