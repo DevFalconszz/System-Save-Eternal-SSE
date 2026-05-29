@@ -53,8 +53,8 @@ class PlayScreen(tk.Frame):
             padx=18, pady=6, command=self.start_play_cycle
         )
 
-        make_button(btn_row, "\u2190 Voltar", fg=FG_CYAN, bg=SURFACE2,
-                    font_size=10, bold=True, padx=14, pady=4,
+        make_button(btn_row, "\u2190  Voltar", fg=FG_DIM, bg=SURFACE0,
+                    font_size=10, bold=True, padx=10, pady=4,
                     command=on_back, side=tk.LEFT)
 
     def start_play_cycle(self):

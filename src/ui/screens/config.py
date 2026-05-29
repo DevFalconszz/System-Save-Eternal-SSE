@@ -76,9 +76,10 @@ class ConfigScreen(tk.Frame):
                     command=self._save_field
                     ).pack(side=tk.LEFT, padx=(0, 8))
 
-        make_button(actions, "\u2190 Voltar", fg=FG_CYAN, bg=SURFACE2,
-                    font_size=10, bold=True, padx=14, pady=4,
-                    command=on_back, side=tk.LEFT)
+        make_button(actions, "\u2190  Voltar", fg=FG_DIM, bg=SURFACE0,
+                    font_size=10, bold=True, padx=12, pady=4,
+                    command=on_back
+                    ).pack(side=tk.LEFT)
 
         self._show_config_help()
 
