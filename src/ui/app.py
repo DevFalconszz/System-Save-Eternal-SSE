@@ -70,6 +70,7 @@ class SSEApp(tk.Tk):
 
         for btn_data in (
             ("[─]", FG_DIM, lambda: self.iconify()),
+            ("[□]", FG_CYAN, self._toggle_maximize),
             ("[✕]", FG_RED, self._on_close),
         ):
             btn = tk.Button(
@@ -143,6 +144,12 @@ class SSEApp(tk.Tk):
             self._content, on_back=self._show_welcome
         )
         self._current_frame.pack(fill=tk.BOTH, expand=True)
+
+    def _toggle_maximize(self):
+        if self.state() == "zoomed":
+            self.state("normal")
+        else:
+            self.state("zoomed")
 
     def _on_close(self):
         from src.ui.dialog import SSEDialog
