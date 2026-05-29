@@ -4,10 +4,11 @@ import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from src.ui.styles import (
-    BG_DARK, CRUST, MANTLE, SURFACE0, SURFACE1,
-    FG_GREEN, FG_RED, FG_CYAN, FG_YELLOW, FG_DIM, FG_BLUE, TEXT,
+    BG_DARK, MANTLE, SURFACE0, SURFACE1,
+    FG_GREEN, FG_RED, FG_CYAN, FG_DIM, TEXT,
     FONT_FAMILY, apply_theme
 )
+from src.ui.components import make_button, NavButton
 from src.ui.screens.welcome import WelcomeScreen
 from src.ui.screens.backup import BackupScreen
 from src.ui.screens.play import PlayScreen
@@ -47,10 +48,9 @@ class SSEApp(tk.Tk):
         bar.pack(fill=tk.X)
         bar.pack_propagate(False)
 
-        lbl = tk.Label(bar, text="SSE Launcher",
-                       font=(FONT_FAMILY, 10, "bold"),
-                       fg=FG_GREEN, bg=MANTLE)
-        lbl.pack(side=tk.LEFT, padx=12)
+        tk.Label(bar, text="SSE Launcher",
+                 font=(FONT_FAMILY, 10, "bold"),
+                 fg=FG_GREEN, bg=MANTLE).pack(side=tk.LEFT, padx=12)
 
         ctrl = tk.Frame(bar, bg=MANTLE)
         ctrl.pack(side=tk.RIGHT)
@@ -70,70 +70,51 @@ class SSEApp(tk.Tk):
         body = tk.Frame(self, bg=BG_DARK)
         body.pack(fill=tk.BOTH, expand=True)
 
-        # ── Sidebar ──
-        side = tk.Frame(body, bg=MANTLE, width=160)
+        side = tk.Frame(body, bg=MANTLE, width=170)
         side.pack(side=tk.LEFT, fill=tk.Y)
         side.pack_propagate(False)
 
-        logo = tk.Label(side, text="◆ SSE",
-                        font=(FONT_FAMILY, 16, "bold"),
-                        fg=FG_GREEN, bg=MANTLE)
-        logo.pack(pady=(14, 20))
+        tk.Label(side, text="◆  SSE",
+                 font=(FONT_FAMILY, 15, "bold"),
+                 fg=FG_GREEN, bg=MANTLE).pack(pady=(14, 18))
 
         self._nav_btns = {}
         for nav_id, icon, label in (
-            ("home", "⬡", "Inicio"),
-            ("backup", "📦", "Backup"),
-            ("play", "🎮", "Jogar"),
-            ("config", "⚙", "Config"),
+            ("home", "⬡", "In\u00edcio"),
+            ("backup", "\U0001F4E6", "Backup"),
+            ("play", "\U0001F3AE", "Jogar"),
+            ("config", "\u2699", "Config"),
         ):
-            btn = tk.Button(side, text=f"  {icon}  {label}",
-                            font=(FONT_FAMILY, 10),
-                            anchor="w", relief=tk.FLAT, bd=0,
-                            padx=14, pady=8, cursor="hand2",
-                            bg=MANTLE, fg=FG_DIM,
-                            activebackground=SURFACE0,
-                            activeforeground=TEXT,
-                            command=lambda n=nav_id: self._nav_go(n))
-            btn.pack(fill=tk.X)
-            self._nav_btns[nav_id] = btn
+            nb = NavButton(side, icon, label,
+                           command=lambda n=nav_id: self._nav_go(n))
+            nb.pack(fill=tk.X, padx=4, pady=1)
+            self._nav_btns[nav_id] = nb
 
-        # Atalho sair no fim da sidebar
         spacer = tk.Frame(side, bg=MANTLE)
         spacer.pack(expand=True)
 
-        sair = tk.Button(side, text="  ✕  Sair",
-                         font=(FONT_FAMILY, 9),
-                         anchor="w", relief=tk.FLAT, bd=0,
-                         padx=14, pady=6, cursor="hand2",
-                         bg=MANTLE, fg=FG_DIM,
-                         activebackground=SURFACE0,
-                         activeforeground=FG_RED,
-                         command=self._on_close)
-        sair.pack(fill=tk.X, side=tk.BOTTOM, pady=(0, 6))
+        NavButton(side, "\u2715", "Sair",
+                  fg=FG_DIM, activefg=FG_RED,
+                  command=self._on_close).pack(fill=tk.X, padx=4, pady=1)
 
-        ver = tk.Label(side, text="v2.0",
-                       font=(FONT_FAMILY, 8),
-                       fg=FG_DIM, bg=MANTLE)
-        ver.pack(side=tk.BOTTOM, pady=(0, 4))
+        tk.Label(side, text="v2.0",
+                 font=(FONT_FAMILY, 8),
+                 fg=FG_DIM, bg=MANTLE).pack(side=tk.BOTTOM, pady=(0, 4))
 
-        # ── Content ──
         self._content = tk.Frame(body, bg=BG_DARK)
         self._content.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
     def _nav_go(self, nav_id):
         self._current_nav = nav_id
         for nid, btn in self._nav_btns.items():
-            btn.configure(fg=FG_GREEN if nid == nav_id else FG_DIM,
-                          bg=SURFACE0 if nid == nav_id else MANTLE)
-        if nav_id == "home":
-            self._show_welcome()
-        elif nav_id == "backup":
-            self._show_backup()
-        elif nav_id == "play":
-            self._show_play()
-        elif nav_id == "config":
-            self._show_config()
+            btn.set_active(nid == nav_id)
+        target = {
+            "home": self._show_welcome,
+            "backup": self._show_backup,
+            "play": self._show_play,
+            "config": self._show_config,
+        }.get(nav_id, self._show_welcome)
+        target()
 
     def _clear(self):
         if self._current_frame:

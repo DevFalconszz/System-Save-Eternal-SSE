@@ -1,86 +1,110 @@
 import tkinter as tk
 from src.ui.terminal import TerminalOutput
 from src.ui.styles import (
-    BG_DARK, FG_GREEN, FG_YELLOW, FG_CYAN, FG_RED,
-    FONT_FAMILY, FONT_SIZE, apply_theme
+    BG_DARK, MANTLE, SURFACE0, SURFACE1,
+    FG_GREEN, FG_YELLOW, FG_CYAN, FG_RED, FG_DIM, TEXT,
+    FONT_FAMILY, FONT_SIZE,
 )
+from src.ui.components import make_button, make_label, HoverCard
 
 
 class ConfigScreen(tk.Frame):
     def __init__(self, parent, on_back, **kwargs):
         super().__init__(parent, bg=BG_DARK, **kwargs)
 
-        header = tk.Label(self, text="Configuração de Destinos",
-                          font=("Courier", 14, "bold"),
-                          fg=FG_YELLOW, bg=BG_DARK)
-        header.pack(pady=(10, 5))
+        hdr = tk.Frame(self, bg=MANTLE, height=44)
+        hdr.pack(fill=tk.X)
+        hdr.pack_propagate(False)
+        make_label(hdr, "\u2699  Configurac\u00e3o de Destinos",
+                   fg=FG_YELLOW, bg=MANTLE, font_size=12, bold=True
+                   ).pack(side=tk.LEFT, padx=16)
 
-        self.terminal = TerminalOutput(self, height=10)
-        self.terminal.pack(fill=tk.X, padx=10, pady=5)
+        body = tk.Frame(self, bg=BG_DARK)
+        body.pack(fill=tk.BOTH, expand=True, padx=14, pady=8)
 
-        notebook_frame = tk.Frame(self, bg=BG_DARK)
-        notebook_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
-
-        btn_frame = tk.Frame(notebook_frame, bg=BG_DARK)
-        btn_frame.pack(pady=5)
+        self.terminal = TerminalOutput(body, height=8)
+        self.terminal.pack(fill=tk.X, pady=(0, 6))
 
         self._current_dest = tk.StringVar(value="github")
 
-        for i, (dest, label) in enumerate([
+        tabs = tk.Frame(body, bg=BG_DARK)
+        tabs.pack(fill=tk.X, pady=(0, 6))
+
+        for dest, label in (
             ("github", "GitHub"),
             ("google_drive", "Google Drive"),
             ("telegram", "Telegram"),
-        ], 1):
-            btn = tk.Radiobutton(
-                btn_frame, text=f"[{i}] {label}",
-                variable=self._current_dest,
-                value=dest,
-                font=(FONT_FAMILY, FONT_SIZE),
-                command=self._show_config_help
-            )
-            apply_theme(btn)
-            btn.pack(side=tk.LEFT, padx=10)
+        ):
+            btn = tk.Button(tabs, text=label,
+                            font=(FONT_FAMILY, FONT_SIZE, "bold"),
+                            fg=FG_GREEN, bg=SURFACE0,
+                            activeforeground=FG_GREEN, activebackground=SURFACE1,
+                            relief=tk.FLAT, bd=0, padx=12, pady=4, cursor="hand2",
+                            command=lambda d=dest: self._switch_dest(d))
+            btn.pack(side=tk.LEFT, padx=3)
+            if dest == "github":
+                btn.configure(bg=SURFACE1)
+
+        form = tk.Frame(body, bg=BG_DARK)
+        form.pack(fill=tk.X, pady=(0, 6))
+
+        tk.Label(form, text="Campo:", font=(FONT_FAMILY, FONT_SIZE),
+                 fg=FG_CYAN, bg=BG_DARK).pack(side=tk.LEFT)
+
+        self.field_entry = tk.Entry(form, width=30, bg=BG_DARK, fg=FG_GREEN,
+                                     insertbackground=FG_GREEN,
+                                     font=(FONT_FAMILY, FONT_SIZE),
+                                     relief=tk.FLAT, bd=0, highlightthickness=1,
+                                     highlightbackground=SURFACE1, highlightcolor=FG_GREEN)
+        self.field_entry.pack(side=tk.LEFT, padx=6, fill=tk.X, expand=True)
+
+        tk.Label(form, text="Valor:", font=(FONT_FAMILY, FONT_SIZE),
+                 fg=FG_CYAN, bg=BG_DARK).pack(side=tk.LEFT, padx=(6, 0))
+
+        self.value_entry = tk.Entry(form, width=30, bg=BG_DARK, fg=FG_GREEN,
+                                     insertbackground=FG_GREEN,
+                                     font=(FONT_FAMILY, FONT_SIZE),
+                                     relief=tk.FLAT, bd=0, highlightthickness=1,
+                                     highlightbackground=SURFACE1, highlightcolor=FG_GREEN)
+        self.value_entry.pack(side=tk.LEFT, padx=6, fill=tk.X, expand=True)
+
+        actions = tk.Frame(body, bg=BG_DARK)
+        actions.pack(fill=tk.X)
+
+        make_button(actions, "Salvar", fg=FG_GREEN, bg=SURFACE0,
+                    font_size=11, bold=True, padx=14, pady=4,
+                    command=self._save_field
+                    ).pack(side=tk.LEFT, padx=(0, 8))
+
+        make_button(actions, "\u2190  Voltar", fg=FG_DIM, bg=SURFACE0,
+                    font_size=10, bold=True, padx=12, pady=4,
+                    command=on_back
+                    ).pack(side=tk.LEFT)
 
         self._show_config_help()
 
-        form_frame = tk.Frame(self, bg=BG_DARK)
-        form_frame.pack(fill=tk.X, padx=10, pady=5)
-
-        tk.Label(form_frame, text="Campo:",
-                 font=(FONT_FAMILY, FONT_SIZE), fg=FG_CYAN,
-                 bg=BG_DARK).pack(side=tk.LEFT)
-
-        self.field_entry = tk.Entry(form_frame, width=50)
-        apply_theme(self.field_entry)
-        self.field_entry.pack(side=tk.LEFT, padx=10, fill=tk.X, expand=True)
-
-        tk.Label(form_frame, text="Valor:",
-                 font=(FONT_FAMILY, FONT_SIZE), fg=FG_CYAN,
-                 bg=BG_DARK).pack(side=tk.LEFT)
-
-        self.value_entry = tk.Entry(form_frame, width=50)
-        apply_theme(self.value_entry)
-        self.value_entry.pack(side=tk.LEFT, padx=10, fill=tk.X, expand=True)
-
-        action_frame = tk.Frame(self, bg=BG_DARK)
-        action_frame.pack(pady=5)
-
-        tk.Button(action_frame, text="Salvar",
-                  command=self._save_field,
-                  font=("Courier", 11)).pack(side=tk.LEFT, padx=5)
-
-        tk.Button(action_frame, text="Voltar", command=on_back,
-                  font=("Courier", 11)).pack(side=tk.LEFT, padx=20)
+    def _switch_dest(self, dest):
+        self._current_dest.set(dest)
+        for w in self.winfo_children():
+            if hasattr(w, "winfo_children"):
+                pass
+        # Find and update tab buttons
+        tabs = self.winfo_children()[2]  # body -> tabs
+        for i, (d, _) in enumerate([("github", ""), ("google_drive", ""), ("telegram", "")]):
+            btn = tabs.winfo_children()[i] if i < len(tabs.winfo_children()) else None
+            if btn:
+                btn.configure(bg=SURFACE1 if d == dest else SURFACE0)
+        self._show_config_help()
 
     def _show_config_help(self):
         self.terminal.clear()
         dest = self._current_dest.get()
         helps = {
             "github": (
-                "GitHub — Configuração\n\n"
-                "Campos disponíveis:\n"
-                "  repo_url  → URL do repositório (ex: https://github.com/user/repo.git)\n"
-                "  token     → Personal Access Token (escopo: repo)\n\n"
+                "GitHub \u2014 Configurac\u00e3o\n\n"
+                "Campos disponiveis:\n"
+                "  repo_url  \u2192 URL do repositorio (ex: https://github.com/user/repo.git)\n"
+                "  token     \u2192 Personal Access Token (escopo: repo)\n\n"
                 "Como criar um token:\n"
                 "  1. Acesse github.com/settings/tokens\n"
                 "  2. Generate new token (classic)\n"
@@ -88,27 +112,27 @@ class ConfigScreen(tk.Frame):
                 "  4. Copie o token gerado"
             ),
             "google_drive": (
-                "Google Drive — Configuração\n\n"
-                "Campos disponíveis:\n"
-                "  client_id     → Client ID do OAuth 2.0\n"
-                "  client_secret → Client Secret\n"
-                "  folder_id     → ID da pasta (opcional)\n\n"
+                "Google Drive \u2014 Configurac\u00e3o\n\n"
+                "Campos disponiveis:\n"
+                "  client_id     \u2192 Client ID do OAuth 2.0\n"
+                "  client_secret \u2192 Client Secret\n"
+                "  folder_id     \u2192 ID da pasta (opcional)\n\n"
                 "Como obter:\n"
                 "  1. Acesse console.cloud.google.com\n"
-                "  2. Crie projeto → Google Drive API\n"
-                "  3. Credenciais → OAuth 2.0 → Desktop app\n"
+                "  2. Crie projeto \u2192 Google Drive API\n"
+                "  3. Credenciais \u2192 OAuth 2.0 \u2192 Desktop app\n"
                 "  4. Baixe o JSON com as credenciais"
             ),
             "telegram": (
-                "Telegram — Configuração\n\n"
-                "Campos disponíveis:\n"
-                "  api_id    → API ID do Telegram\n"
-                "  api_hash  → API Hash\n"
-                "  phone     → Telefone (+5511999999999)\n"
-                "  chat_id   → Chat ID (opcional, padrão: Saved Messages)\n\n"
+                "Telegram \u2014 Configurac\u00e3o\n\n"
+                "Campos disponiveis:\n"
+                "  api_id    \u2192 API ID do Telegram\n"
+                "  api_hash  \u2192 API Hash\n"
+                "  phone     \u2192 Telefone (+5511999999999)\n"
+                "  chat_id   \u2192 Chat ID (opcional, padrao: Saved Messages)\n\n"
                 "Como obter:\n"
                 "  1. Acesse my.telegram.org\n"
-                "  2. Login → API Development Tools\n"
+                "  2. Login \u2192 API Development Tools\n"
                 "  3. Crie um app para obter api_id e api_hash"
             ),
         }
@@ -126,6 +150,6 @@ class ConfigScreen(tk.Frame):
 
         key = f"{dest}.{field}"
         cfg.set_key(key, value)
-        self.terminal.write((f"\n✓ {key} salvo com sucesso!\n", "ok"))
+        self.terminal.write((f"\n{key} salvo com sucesso!\n", "ok"))
         self.field_entry.delete(0, tk.END)
         self.value_entry.delete(0, tk.END)

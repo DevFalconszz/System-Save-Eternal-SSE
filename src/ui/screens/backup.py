@@ -1,6 +1,5 @@
 import tkinter as tk
-import threading
-import sys, os, importlib
+import threading, os, importlib
 
 from src.ui.terminal import TerminalOutput, ProgressBar
 from src.ui.styles import (
@@ -8,72 +7,58 @@ from src.ui.styles import (
     FG_GREEN, FG_YELLOW, FG_CYAN, FG_DIM, TEXT,
     FONT_FAMILY,
 )
+from src.ui.components import HoverCard, make_button, make_label
 
 
 class BackupScreen(tk.Frame):
     def __init__(self, parent, on_back, **kwargs):
         super().__init__(parent, bg=BG_DARK, **kwargs)
 
-        # ── Header ──
         hdr = tk.Frame(self, bg=MANTLE, height=44)
         hdr.pack(fill=tk.X)
         hdr.pack_propagate(False)
-        tk.Label(hdr, text="📦  Backup de Saves",
-                 font=(FONT_FAMILY, 12, "bold"),
-                 fg=FG_GREEN, bg=MANTLE).pack(side=tk.LEFT, padx=16)
+        make_label(hdr, "\U0001F4E6  Backup de Saves",
+                   fg=FG_GREEN, bg=MANTLE, font_size=12, bold=True
+                   ).pack(side=tk.LEFT, padx=16)
 
-        # ── Body ──
         body = tk.Frame(self, bg=BG_DARK)
         body.pack(fill=tk.BOTH, expand=True, padx=14, pady=8)
 
-        # Game selection cards
-        cards = tk.Frame(body, bg=BG_DARK)
-        cards.pack(fill=tk.X, pady=(0, 6))
-
+        # Game cards
         for emoji, label, game in (
-            ("⛏", "Minecraft  —  Detecta mundos do Minecraft", "minecraft"),
-            ("🐉", "Pokemon  —  Varre emuladores Nintendo DS", "pokemon"),
+            ("\u26CF", "Minecraft  \u2014  Detecta mundos do Minecraft", "minecraft"),
+            ("\U0001F409", "Pok\u00e9mon  \u2014  Varre emuladores Nintendo DS", "pokemon"),
         ):
-            card = tk.Frame(cards, bg=SURFACE0, cursor="hand2")
+            card = HoverCard(body, command=lambda g=game: self.start_backup(g))
             card.pack(fill=tk.X, pady=3)
-            inner = tk.Frame(card, bg=SURFACE0, padx=14, pady=10)
-            inner.pack(fill=tk.X)
+            inner = card.body()
 
-            tk.Label(inner, text=emoji, font=(FONT_FAMILY, 18),
-                     fg=FG_GREEN, bg=SURFACE0).pack(side=tk.LEFT, padx=(0, 10))
-            tk.Label(inner, text=label, font=(FONT_FAMILY, 11, "bold"),
-                     fg=TEXT, bg=SURFACE0, anchor="w"
-                     ).pack(side=tk.LEFT, fill=tk.X, expand=True)
-            tk.Button(inner, text="▶", font=(FONT_FAMILY, 11, "bold"),
-                      fg=FG_GREEN, bg=SURFACE1, relief=tk.FLAT,
-                      bd=0, padx=8, cursor="hand2",
-                      command=lambda g=game: self.start_backup(g)
-                      ).pack(side=tk.RIGHT)
+            make_label(inner, emoji, fg=FG_GREEN, bg=SURFACE0,
+                       font_size=16).pack(side=tk.LEFT, padx=(0, 10))
 
-            for w in (card, inner):
-                w.bind("<Enter>", lambda e, f=SURFACE1: (card.configure(bg=f), inner.configure(bg=f)))
-                w.bind("<Leave>", lambda e, f=SURFACE0: (card.configure(bg=f), inner.configure(bg=f)))
+            make_label(inner, label, fg=TEXT, bg=SURFACE0,
+                       font_size=11, bold=True, anchor="w"
+                       ).pack(side=tk.LEFT, fill=tk.X, expand=True)
 
-        # Terminal
+            make_button(inner, "\u25B6", fg=FG_GREEN, bg=SURFACE1,
+                        font_size=11, bold=True, padx=8, pady=4,
+                        command=lambda g=game: self.start_backup(g)
+                        ).pack(side=tk.RIGHT)
+
         self.terminal = TerminalOutput(body, height=12)
-        self.terminal.pack(fill=tk.BOTH, expand=True, pady=4)
+        self.terminal.pack(fill=tk.BOTH, expand=True, pady=(6, 2))
 
-        # Progress
         prog = tk.Frame(body, bg=BG_DARK)
         prog.pack(fill=tk.X, pady=(2, 4))
-        tk.Label(prog, text="Progresso:", font=(FONT_FAMILY, 9),
-                 fg=FG_CYAN, bg=BG_DARK).pack(side=tk.LEFT, padx=(0, 8))
+        make_label(prog, "Progresso:", fg=FG_CYAN, font_size=9
+                   ).pack(side=tk.LEFT, padx=(0, 8))
         self.progress = ProgressBar(prog, width=280, height=12)
         self.progress.pack(side=tk.LEFT)
 
-        # Voltar
-        tk.Button(body, text="←  Voltar",
-                  font=(FONT_FAMILY, 10, "bold"),
-                  fg=FG_DIM, bg=SURFACE0, relief=tk.FLAT,
-                  bd=0, padx=12, pady=4, cursor="hand2",
-                  activeforeground=TEXT, activebackground=SURFACE1,
-                  command=on_back
-                  ).pack(pady=(2, 0))
+        make_button(body, "\u2190  Voltar", fg=FG_DIM, bg=SURFACE0,
+                    font_size=10, bold=True, padx=12, pady=4,
+                    command=on_back
+                    ).pack(pady=(2, 0))
 
     def start_backup(self, game):
         self.terminal.clear()
@@ -100,17 +85,12 @@ class BackupScreen(tk.Frame):
             return
 
         self.progress.set_progress(10)
-
-        if game == "minecraft":
-            from src.games.minecraft import MinecraftFinder
-            finder = MinecraftFinder()
-            self.terminal.write(("Buscando saves do Minecraft...\n", "info"))
-        else:
-            from src.games.pokemon import PokemonFinder
-            finder = PokemonFinder(system_wide_search=True)
-            self.terminal.write(("Buscando saves de Pokemon...\n", "info"))
-
+        finder_cls = ("src.games.minecraft", "MinecraftFinder") if game == "minecraft" else ("src.games.pokemon", "PokemonFinder")
+        self.terminal.write((f"Buscando saves de {game.title()}...\n", "info"))
+        mod = importlib.import_module(finder_cls[0])
+        finder = getattr(mod, finder_cls[1])(system_wide_search=(game != "minecraft")) if game != "minecraft" else getattr(mod, finder_cls[1])()
         saves = finder.find_saves()
+
         if not saves:
             self.terminal.write(("Nenhum save encontrado.\n", "error"))
             return
@@ -127,7 +107,6 @@ class BackupScreen(tk.Frame):
             return
 
         self.progress.set_progress(60)
-
         from src.console.menu import get_timestamp, configure_destination
         timestamp = get_timestamp()
 
@@ -145,22 +124,22 @@ class BackupScreen(tk.Frame):
             return
 
         per_dest = 30.0 / len(configured)
+        saver_map = {
+            "github": ("src.savers.github_saver", "GitHubSaver"),
+            "google_drive": ("src.savers.googledrive_saver", "GoogleDriveSaver"),
+            "telegram": ("src.savers.telegram_saver", "TelegramSaver"),
+        }
+
         for i, dest_name in enumerate(configured):
             self.terminal.write((f"\n[{dest_name.title()}] Enviando...\n", "warn"))
             self.progress.set_progress(60 + int(i * per_dest))
             configure_destination(dest_name.title())
 
-            mod = importlib.import_module(f"src.savers.{dest_name}_saver")
-            cls_name = {"github": "GitHubSaver", "google_drive": "GoogleDriveSaver", "telegram": "TelegramSaver"}[dest_name]
-            saver = getattr(mod, cls_name)()
-            if not saver:
-                continue
-
+            mod_path, cls_name = saver_map[dest_name]
+            saver = getattr(importlib.import_module(mod_path), cls_name)()
             all_files = [s.path for s in saves]
-            metadata = {
-                "repo_path": repo_path, "save_dir": game,
-                "game": saves[0].game, "timestamp": timestamp,
-            }
+            metadata = {"repo_path": repo_path, "save_dir": game,
+                        "game": saves[0].game, "timestamp": timestamp}
             if saver.save(all_files, metadata):
                 self.terminal.write((f"OK  Backup para {saver.name()} concluido!\n", "ok"))
             else:

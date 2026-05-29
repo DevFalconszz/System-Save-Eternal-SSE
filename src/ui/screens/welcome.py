@@ -2,106 +2,103 @@ import tkinter as tk
 import os
 
 from src.ui.styles import (
-    BG_DARK, CRUST, MANTLE, SURFACE0, SURFACE1, SURFACE2,
+    BG_DARK, MANTLE, SURFACE0, SURFACE1, SURFACE2,
     FG_GREEN, FG_CYAN, FG_YELLOW, FG_DIM, TEXT,
-    FONT_FAMILY, rounded_rect,
+    FONT_FAMILY,
 )
-
-PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+from src.ui.components import HoverCard, make_label
 
 
 class WelcomeScreen(tk.Frame):
     def __init__(self, parent, on_backup, on_play, on_config, **kwargs):
         super().__init__(parent, bg=BG_DARK, **kwargs)
 
-        # ── Hero Banner ──
-        hero = tk.Frame(self, bg=MANTLE, height=180)
+        PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
+        # ── Hero ──
+        hero = tk.Frame(self, bg=MANTLE, height=170)
         hero.pack(fill=tk.X)
         hero.pack_propagate(False)
 
-        # Try to load SSE banner image
-        self._banner_img = None
         banner_path = os.path.join(PROJECT_DIR, "SYSTEM-SAVE-ETERNAL-SSE.png")
         if os.path.exists(banner_path):
             try:
                 from PIL import Image, ImageTk
                 img = Image.open(banner_path)
-                img = img.resize((480, 100), Image.LANCZOS)
+                img = img.resize((460, 96), Image.LANCZOS)
                 self._banner_img = ImageTk.PhotoImage(img)
-                tk.Label(hero, image=self._banner_img,
-                         bg=MANTLE).pack(expand=True)
+                tk.Label(hero, image=self._banner_img, bg=MANTLE).pack(expand=True)
             except Exception:
                 self._fallback_banner(hero)
         else:
             self._fallback_banner(hero)
 
-        # ── Info bar ──
-        info = tk.Frame(self, bg=BG_DARK)
-        info.pack(fill=tk.X, padx=30, pady=(14, 6))
+        # ── Tags ──
+        tags = tk.Frame(self, bg=BG_DARK)
+        tags.pack(fill=tk.X, padx=28, pady=(12, 4))
 
         for icon, text in (
-            ("🐧", "Linux"),
-            ("🪟", "Windows"),
-            ("📱", "Android"),
-            ("☁", "GitHub / Drive / Telegram"),
-            ("🔄", "Auto-sync"),
+            ("\U0001F427", "Linux"),
+            ("\U0001FA9F", "Windows"),
+            ("\U0001F4F1", "Android"),
+            ("\u2601", "GitHub / Drive / TG"),
+            ("\U0001F504", "Auto-sync"),
         ):
-            tag = tk.Label(info, text=f" {icon} {text} ",
+            tag = tk.Label(tags, text=f" {icon} {text} ",
                            font=(FONT_FAMILY, 9),
                            fg=FG_DIM, bg=SURFACE0, padx=6, pady=2)
             tag.pack(side=tk.LEFT, padx=3)
 
         # ── Cards ──
-        cards = tk.Frame(self, bg=BG_DARK)
-        cards.pack(expand=True, pady=(10, 0))
+        cards_frame = tk.Frame(self, bg=BG_DARK)
+        cards_frame.pack(expand=True, pady=(8, 0), fill=tk.BOTH)
 
-        card_data = [
-            ("📦", "BACKUP", "de Saves", FG_GREEN,
-             "Detecta Minecraft e Pokemon\ne envia para a nuvem",
+        card_configs = [
+            ("\U0001F4E6", "BACKUP  de Saves", FG_GREEN,
+             "Detecta Minecraft e Pok\u00e9mon\ne envia para a nuvem",
              on_backup),
-            ("🎮", "JOGAR", "Minecraft", FG_CYAN,
-             "Launcher + sync automatico\nantes e depois de jogar",
+            ("\U0001F3AE", "JOGAR  Minecraft", FG_CYAN,
+             "Launcher + sync autom\u00e1tico\nantes e depois de jogar",
              on_play),
-            ("⚙", "CONFIG", "Destinos", FG_YELLOW,
+            ("\u2699", "CONFIG  Destinos", FG_YELLOW,
              "GitHub, Google Drive e Telegram\nconfigure suas chaves",
              on_config),
         ]
 
-        for emoji, title, subtitle, color, desc, cmd in card_data:
-            self._build_card(cards, emoji, title, subtitle, color, desc, cmd)
+        for emoji, title, color, desc, cmd in card_configs:
+            self._build_card(cards_frame, emoji, title, color, desc, cmd)
 
         # ── Footer ──
-        tk.Label(self, text="Feito com 💾  para preservar o que importa.",
-                 font=(FONT_FAMILY, 9), fg=FG_DIM, bg=BG_DARK
-                 ).pack(side=tk.BOTTOM, pady=8)
+        make_label(self, "Feito com \U0001F4BE  para preservar o que importa.",
+                   fg=FG_DIM, font_size=9
+                   ).pack(side=tk.BOTTOM, pady=8)
 
     def _fallback_banner(self, parent):
         lines = [
-            ("╔══════════════════════════════════════╗", FG_GREEN),
-            ("║     SYSTEM SAVE ETERNAL  ~  SSE     ║", FG_GREEN),
-            ("║    Backup Inteligente de Saves      ║", FG_CYAN),
-            ("╚══════════════════════════════════════╝", FG_GREEN),
+            ("\u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557", FG_GREEN),
+            ("\u2551     SYSTEM SAVE ETERNAL  ~  SSE     \u2551", FG_GREEN),
+            ("\u2551    Backup Inteligente de Saves      \u2551", FG_CYAN),
+            ("\u2559\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255C", FG_GREEN),
         ]
         for text, color in lines:
             tk.Label(parent, text=text, font=(FONT_FAMILY, 11, "bold"),
                      fg=color, bg=MANTLE).pack()
 
-    def _build_card(self, parent, emoji, title, subtitle, color, desc, command):
-        card = tk.Frame(parent, bg=SURFACE0, bd=0, cursor="hand2")
-        card.pack(pady=5, padx=24, fill=tk.X)
+    def _build_card(self, parent, emoji, title, color, desc, command):
+        card = HoverCard(parent, command=command)
+        card.pack(pady=4, padx=22, fill=tk.X)
 
-        inner = tk.Frame(card, bg=SURFACE0, padx=18, pady=14)
-        inner.pack(fill=tk.X)
+        body = card.body()
 
-        # Emoji + Title
-        tk.Label(inner, text=emoji, font=(FONT_FAMILY, 22),
-                 fg=color, bg=SURFACE0).pack(side=tk.LEFT, padx=(0, 14))
+        emoji_lbl = tk.Label(body, text=emoji, font=(FONT_FAMILY, 20),
+                             fg=color, bg=SURFACE0)
+        emoji_lbl.pack(side=tk.LEFT, padx=(0, 12))
 
-        txt_block = tk.Frame(inner, bg=SURFACE0)
+        txt_block = tk.Frame(body, bg=SURFACE0)
         txt_block.pack(side=tk.LEFT, fill=tk.X, expand=True)
 
-        tk.Label(txt_block, text=f"{title}  {subtitle}",
-                 font=(FONT_FAMILY, 13, "bold"),
+        tk.Label(txt_block, text=title,
+                 font=(FONT_FAMILY, 12, "bold"),
                  fg=color, bg=SURFACE0, anchor="w"
                  ).pack(fill=tk.X)
 
@@ -110,27 +107,9 @@ class WelcomeScreen(tk.Frame):
                  fg=FG_DIM, bg=SURFACE0, anchor="w"
                  ).pack(fill=tk.X, pady=(2, 0))
 
-        # Arrow button
-        tk.Button(inner, text="▶", font=(FONT_FAMILY, 12, "bold"),
+        tk.Button(body, text="\u25B6", font=(FONT_FAMILY, 11, "bold"),
                   fg=color, bg=SURFACE1,
                   activeforeground=color, activebackground=SURFACE2,
-                  relief=tk.FLAT, bd=0, padx=10, cursor="hand2",
-                  command=command).pack(side=tk.RIGHT, padx=(10, 0))
-
-        # Hover effect
-        def on_enter(e, f=SURFACE1): card.configure(bg=f); inner.configure(bg=f)
-        for w in (card, inner):
-            for c in w.winfo_children():
-                try:
-                    c.bind("<Enter>", lambda e, f=SURFACE1: on_enter(e, f), add="+")
-                    c.bind("<Leave>", lambda e: on_enter(e, SURFACE0), add="+")
-                except Exception:
-                    pass
-            w.bind("<Enter>", lambda e, f=SURFACE1: on_enter(e, f))
-            w.bind("<Leave>", lambda e: on_enter(e, SURFACE0))
-        for c in inner.winfo_children():
-            try:
-                c.bind("<Enter>", lambda e, f=SURFACE1: on_enter(e, f), add="+")
-                c.bind("<Leave>", lambda e: on_enter(e, SURFACE0), add="+")
-            except Exception:
-                pass
+                  relief=tk.FLAT, bd=0, padx=8, cursor="hand2",
+                  command=command
+                  ).pack(side=tk.RIGHT, padx=(8, 0))
