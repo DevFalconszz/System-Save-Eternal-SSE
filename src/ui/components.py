@@ -11,14 +11,21 @@ def make_button(parent, text, fg=FG_GREEN, bg=SURFACE0,
                 command=None, side=None, fill=None, expand=False,
                 **kwargs):
     weight = "bold" if bold else "normal"
+    hover_bg = kwargs.pop("hover_bg", SURFACE1)
     btn = tk.Button(
         parent, text=text,
         font=(FONT_FAMILY, font_size or FONT_SIZE, weight),
         fg=fg, bg=bg,
-        activeforeground=fg, activebackground=SURFACE1,
+        activeforeground=fg, activebackground=hover_bg,
         relief=tk.FLAT, bd=0, padx=padx, pady=pady,
         cursor="hand2", command=command, **kwargs
     )
+    def on_enter(e):
+        btn.configure(bg=hover_bg)
+    def on_leave(e):
+        btn.configure(bg=bg)
+    btn.bind("<Enter>", on_enter, add="+")
+    btn.bind("<Leave>", on_leave, add="+")
     btn.pack(side=side, fill=fill, expand=expand)
     return btn
 
@@ -39,53 +46,50 @@ class HoverCard(tk.Frame):
         self._normal_bg = bg
         self._hover_bg = hover_bg
         self._command = command
+        self._hovering = False
+
         self._inner = tk.Frame(self, bg=bg)
         self._inner.pack(fill=tk.BOTH, expand=True, padx=padx, pady=pady)
 
         self.bind("<Enter>", self._on_enter, add="+")
         self.bind("<Leave>", self._on_leave, add="+")
         self.bind("<Button-1>", self._on_click, add="+")
-        self._inner.bind("<Enter>", self._on_enter, add="+")
-        self._inner.bind("<Leave>", self._on_leave, add="+")
         self._inner.bind("<Button-1>", self._on_click, add="+")
-
-        self._children_bind = []
-
-    def _bind_all_children(self):
-        def bind_rec(w):
-            try:
-                w.bind("<Enter>", self._on_enter, add="+")
-                w.bind("<Leave>", self._on_leave, add="+")
-                w.bind("<Button-1>", self._on_click, add="+")
-                self._children_bind.append(w)
-            except Exception:
-                pass
-            for c in w.winfo_children():
-                bind_rec(c)
-        for c in self.winfo_children():
-            bind_rec(c)
-        self.after(100, bind_rec, self._inner)
 
     def body(self):
         return self._inner
 
-    def _on_enter(self, event=None):
-        self.configure(bg=self._hover_bg)
-        self._inner.configure(bg=self._hover_bg)
+    def _paint(self, bg):
+        self.configure(bg=bg)
+        self._inner.configure(bg=bg)
         for w in self._inner.winfo_children():
             try:
-                w.configure(bg=self._hover_bg)
+                w.configure(bg=bg)
             except Exception:
                 pass
 
+    def _mouse_over_card(self):
+        try:
+            x = self.winfo_pointerx()
+            y = self.winfo_pointery()
+            rx = self.winfo_rootx()
+            ry = self.winfo_rooty()
+            return (rx <= x <= rx + self.winfo_width() and
+                    ry <= y <= ry + self.winfo_height())
+        except Exception:
+            return False
+
+    def _on_enter(self, event=None):
+        self._hovering = True
+        self._paint(self._hover_bg)
+
     def _on_leave(self, event=None):
-        self.configure(bg=self._normal_bg)
-        self._inner.configure(bg=self._normal_bg)
-        for w in self._inner.winfo_children():
-            try:
-                w.configure(bg=self._normal_bg)
-            except Exception:
-                pass
+        self._hovering = False
+        self.after(30, self._resolve_leave)
+
+    def _resolve_leave(self):
+        if not self._hovering and not self._mouse_over_card():
+            self._paint(self._normal_bg)
 
     def _on_click(self, event=None):
         if self._command:
@@ -102,6 +106,7 @@ class NavButton(tk.Frame):
         self._active_fg = activefg
         self._command = command
         self._is_active = False
+        self._hovering = False
 
         self._icon_lbl = tk.Label(
             self, text=icon, font=(FONT_FAMILY, 12),
@@ -115,32 +120,47 @@ class NavButton(tk.Frame):
         )
         self._text_lbl.pack(side=tk.LEFT, fill=tk.X, expand=True, pady=8)
 
-        self._bind_hover()
-
-    def _bind_hover(self):
         for w in (self, self._icon_lbl, self._text_lbl):
-            w.bind("<Enter>", lambda e: self._set_hover(True), add="+")
-            w.bind("<Leave>", lambda e: self._set_hover(False), add="+")
+            w.bind("<Enter>", lambda e: self._on_enter(), add="+")
+            w.bind("<Leave>", lambda e: self._on_leave(), add="+")
             w.bind("<Button-1>", lambda e: self._click(), add="+")
 
-    def _set_hover(self, on):
+    def _on_enter(self):
         if self._is_active:
             return
-        bg = SURFACE1 if on else MANTLE
-        fg = TEXT if on else self._normal_fg
-        self._set_theme(bg, fg)
+        self._hovering = True
+        self._paint(SURFACE1, TEXT)
 
-    def _set_theme(self, bg, fg):
+    def _on_leave(self):
+        self._hovering = False
+        self.after(30, self._resolve_leave)
+
+    def _resolve_leave(self):
+        if self._is_active or self._hovering:
+            return
+        try:
+            x = self.winfo_pointerx()
+            y = self.winfo_pointery()
+            rx = self.winfo_rootx()
+            ry = self.winfo_rooty()
+            inside = (rx <= x <= rx + self.winfo_width() and
+                      ry <= y <= ry + self.winfo_height())
+            if not inside:
+                self._paint(MANTLE, self._normal_fg)
+        except Exception:
+            self._paint(MANTLE, self._normal_fg)
+
+    def _paint(self, bg, fg=None):
         self.configure(bg=bg)
-        self._icon_lbl.configure(bg=bg, fg=fg)
-        self._text_lbl.configure(bg=bg, fg=fg)
+        self._icon_lbl.configure(bg=bg, fg=fg or self._normal_fg)
+        self._text_lbl.configure(bg=bg, fg=fg or self._normal_fg)
 
     def set_active(self, active):
         self._is_active = active
         if active:
-            self._set_theme(self._active_bg, self._active_fg)
+            self._paint(self._active_bg, self._active_fg)
         else:
-            self._set_theme(self._normal_bg, self._normal_fg)
+            self._paint(MANTLE, self._normal_fg)
 
     def _click(self):
         if self._command:

@@ -55,10 +55,10 @@ class BackupScreen(tk.Frame):
         self.progress = ProgressBar(prog, width=280, height=12)
         self.progress.pack(side=tk.LEFT)
 
-        make_button(body, "\u2190  Voltar", fg=FG_DIM, bg=SURFACE0,
-                    font_size=10, bold=True, padx=12, pady=4,
-                    command=on_back
-                    ).pack(pady=(2, 0))
+        tk.Frame(body, bg=BG_DARK, height=4).pack()
+        make_button(body, "\u2190 Voltar", fg=FG_CYAN, bg=SURFACE2,
+                    font_size=10, bold=True, padx=14, pady=4,
+                    command=on_back)
 
     def start_backup(self, game):
         self.terminal.clear()
