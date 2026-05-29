@@ -6,7 +6,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from src.ui.styles import (
     BG_DARK, CRUST, SURFACE0, SURFACE1,
-    FG_GREEN, FG_RED, FG_DIM, TEXT,
+    FG_GREEN, FG_RED, FG_CYAN, FG_DIM, TEXT,
     FONT_FAMILY, apply_theme
 )
 from src.ui.screens.welcome import WelcomeScreen
@@ -146,10 +146,17 @@ class SSEApp(tk.Tk):
         self._current_frame.pack(fill=tk.BOTH, expand=True)
 
     def _toggle_maximize(self):
-        if self.state() == "zoomed":
-            self.state("normal")
+        import platform
+        if platform.system() == "Windows":
+            if self.state() == "zoomed":
+                self.state("normal")
+            else:
+                self.state("zoomed")
         else:
-            self.state("zoomed")
+            if self.attributes("-zoomed"):
+                self.attributes("-zoomed", False)
+            else:
+                self.attributes("-zoomed", True)
 
     def _on_close(self):
         from src.ui.dialog import SSEDialog
