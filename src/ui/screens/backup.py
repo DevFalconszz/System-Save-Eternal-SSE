@@ -1,52 +1,63 @@
 import tkinter as tk
 import threading
-import sys
-import os
+import sys, os
 
 from src.ui.terminal import TerminalOutput, ProgressBar
-from src.ui.styles import BG_DARK, FG_YELLOW, FG_CYAN, FG_GREEN, apply_theme
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+from src.ui.styles import (
+    BG_DARK, CRUST, SURFACE0, SURFACE1,
+    FG_GREEN, FG_YELLOW, FG_CYAN, FG_DIM, TEXT,
+    FONT_FAMILY, FONT_SIZE, apply_theme
+)
 
 
 class BackupScreen(tk.Frame):
     def __init__(self, parent, on_back, **kwargs):
         super().__init__(parent, bg=BG_DARK, **kwargs)
 
-        header = tk.Label(self, text="Backup de Saves",
-                          font=("Courier", 14, "bold"),
-                          fg=FG_YELLOW, bg=BG_DARK)
-        header.pack(pady=(10, 5))
+        # ── Header ──
+        hdr = tk.Frame(self, bg=BG_DARK)
+        hdr.pack(fill=tk.X, padx=14, pady=(10, 2))
+        tk.Label(hdr, text="Backup de Saves",
+                 font=(FONT_FAMILY, 13, "bold"),
+                 fg=FG_YELLOW, bg=BG_DARK).pack(side=tk.LEFT)
+        tk.Label(hdr, text="selecione o jogo abaixo",
+                 font=(FONT_FAMILY, 10),
+                 fg=FG_DIM, bg=BG_DARK).pack(side=tk.LEFT, padx=10)
 
-        self.terminal = TerminalOutput(self, height=18)
-        self.terminal.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
+        # ── Terminal ──
+        self.terminal = TerminalOutput(self, height=16)
+        self.terminal.pack(fill=tk.BOTH, expand=True, padx=12, pady=4)
 
-        progress_frame = tk.Frame(self, bg=BG_DARK)
-        progress_frame.pack(fill=tk.X, padx=10, pady=(0, 5))
-        tk.Label(progress_frame, text="Progresso:",
-                 font=("Courier", 10), fg=FG_CYAN,
-                 bg=BG_DARK).pack(side=tk.LEFT, padx=(0, 10))
-        self.progress = ProgressBar(progress_frame, width=300, height=18)
+        # ── Progress ──
+        prog_frame = tk.Frame(self, bg=BG_DARK)
+        prog_frame.pack(fill=tk.X, padx=12, pady=(2, 4))
+        tk.Label(prog_frame, text="Progresso:", font=(FONT_FAMILY, 10),
+                 fg=FG_CYAN, bg=BG_DARK).pack(side=tk.LEFT, padx=(0, 10))
+        self.progress = ProgressBar(prog_frame, width=300, height=14)
         self.progress.pack(side=tk.LEFT)
 
+        # ── Buttons ──
         btn_frame = tk.Frame(self, bg=BG_DARK)
-        btn_frame.pack(pady=5)
+        btn_frame.pack(pady=6)
 
-        tk.Button(btn_frame, text="[1] Minecraft",
-                  command=lambda: self.start_backup("minecraft"),
-                  font=("Courier", 11)).pack(side=tk.LEFT, padx=5)
+        for text, game in (("[1]  Minecraft", "minecraft"), ("[2]  Pokemon", "pokemon")):
+            btn = tk.Button(btn_frame, text=text, font=(FONT_FAMILY, 11, "bold"),
+                            fg=FG_GREEN, bg=SURFACE0,
+                            activeforeground=FG_GREEN, activebackground=SURFACE1,
+                            relief=tk.FLAT, bd=0, padx=16, pady=6, cursor="hand2",
+                            command=lambda g=game: self.start_backup(g))
+            btn.pack(side=tk.LEFT, padx=4)
 
-        tk.Button(btn_frame, text="[2] Pokémon",
-                  command=lambda: self.start_backup("pokemon"),
-                  font=("Courier", 11)).pack(side=tk.LEFT, padx=5)
-
-        tk.Button(btn_frame, text="Voltar", command=on_back,
-                  font=("Courier", 11)).pack(side=tk.LEFT, padx=20)
+        tk.Button(btn_frame, text="Voltar", font=(FONT_FAMILY, 11, "bold"),
+                  fg=TEXT, bg=SURFACE0,
+                  activeforeground=TEXT, activebackground=SURFACE1,
+                  relief=tk.FLAT, bd=0, padx=16, pady=6, cursor="hand2",
+                  command=on_back).pack(side=tk.LEFT, padx=20)
 
     def start_backup(self, game):
         self.terminal.clear()
         self.progress.set_progress(0)
-        self.terminal.write(("Iniciando backup...\n", "warn"))
+        self.terminal.write(("Preparando backup...\n", "warn"))
         self.terminal.write((f"Jogo: {game}\n", "info"))
 
         def run():
@@ -54,21 +65,17 @@ class BackupScreen(tk.Frame):
                 self._do_backup(game)
             except Exception as e:
                 self.terminal.write((f"Erro: {e}\n", "error"))
-
         threading.Thread(target=run, daemon=True).start()
 
     def _do_backup(self, game):
-        self.terminal.write(("Verificando configurações...\n", "info"))
-
         from src.utils import config as cfg
         repo_path = cfg.get("save_repo_path", "")
         if not repo_path:
-            self.terminal.write(("ERRO: Caminho do repositório não configurado.\n", "error"))
-            self.terminal.write(("Volte e configure em 'Configurar Destinos'.\n", "warn"))
+            self.terminal.write(("ERRO: Caminho do repositorio nao configurado.\n", "error"))
+            self.terminal.write(("Va em 'Configurar Destinos' primeiro.\n", "warn"))
             return
-
         if not os.path.isdir(repo_path):
-            self.terminal.write((f"ERRO: Diretório não encontrado: {repo_path}\n", "error"))
+            self.terminal.write((f"ERRO: Diretorio nao encontrado: {repo_path}\n", "error"))
             return
 
         self.progress.set_progress(10)
@@ -80,11 +87,11 @@ class BackupScreen(tk.Frame):
         else:
             from src.games.pokemon import PokemonFinder
             finder = PokemonFinder(system_wide_search=True)
-            self.terminal.write(("Buscando saves de Pokémon...\n", "info"))
+            self.terminal.write(("Buscando saves de Pokemon...\n", "info"))
 
         saves = finder.find_saves()
         if not saves:
-            self.terminal.write(("Nenhum save encontrado para este jogo.\n", "error"))
+            self.terminal.write(("Nenhum save encontrado.\n", "error"))
             return
 
         self.progress.set_progress(30)
@@ -92,7 +99,7 @@ class BackupScreen(tk.Frame):
         for s in saves:
             self.terminal.write((f"  [{s.name}]  ({s.game})\n", "dim"))
 
-        self.terminal.write(("\nCopiando saves para o repositório local...\n", "info"))
+        self.terminal.write(("\nCopiando saves para o repositorio local...\n", "info"))
         from src.console.menu import sync_to_repo
         if not sync_to_repo(saves, repo_path):
             self.terminal.write(("Falha ao sincronizar saves.\n", "error"))
@@ -103,17 +110,12 @@ class BackupScreen(tk.Frame):
         from src.console.menu import get_timestamp, configure_destination
         timestamp = get_timestamp()
 
-        dests = ["github", "google_drive", "telegram"]
-        configured = []
-        for d in dests:
-            key_map = {
-                "github": ("github.repo_url", "github.token"),
-                "google_drive": ("google_drive.client_id", "google_drive.client_secret"),
-                "telegram": ("telegram.api_id", "telegram.api_hash"),
-            }
-            keys = key_map[d]
-            if all(cfg.get(k) for k in keys):
-                configured.append(d)
+        dests_checks = {
+            "github": ("github.repo_url", "github.token"),
+            "google_drive": ("google_drive.client_id", "google_drive.client_secret"),
+            "telegram": ("telegram.api_id", "telegram.api_hash"),
+        }
+        configured = [d for d, keys in dests_checks.items() if all(cfg.get(k) for k in keys)]
 
         if not configured:
             self.terminal.write(("\nNenhum destino configurado.\n", "warn"))
@@ -122,46 +124,33 @@ class BackupScreen(tk.Frame):
             return
 
         per_dest = 30.0 / len(configured)
-
         for i, dest_name in enumerate(configured):
             self.terminal.write((f"\n[{dest_name.title()}] Enviando...\n", "warn"))
             self.progress.set_progress(60 + int(i * per_dest))
-
             configure_destination(dest_name.title())
 
-            saver = None
-            if dest_name == "github":
-                from src.savers.github_saver import GitHubSaver
-                saver = GitHubSaver()
-            elif dest_name == "google_drive":
-                from src.savers.googledrive_saver import GoogleDriveSaver
-                saver = GoogleDriveSaver()
-            elif dest_name == "telegram":
-                from src.savers.telegram_saver import TelegramSaver
-                saver = TelegramSaver()
-
+            saver_map = {
+                "github": ("src.savers.github_saver", "GitHubSaver"),
+                "google_drive": ("src.savers.googledrive_saver", "GoogleDriveSaver"),
+                "telegram": ("src.savers.telegram_saver", "TelegramSaver"),
+            }
+            mod_path, cls_name = saver_map[dest_name]
+            import importlib
+            mod = importlib.import_module(mod_path)
+            saver = getattr(mod, cls_name)()
             if not saver:
                 continue
 
-            all_files = []
-            for save in saves:
-                if os.path.isdir(save.path):
-                    all_files.append(save.path)
-                else:
-                    all_files.append(save.path)
-
+            all_files = [s.path for s in saves]
             metadata = {
-                "repo_path": repo_path,
-                "save_dir": game,
-                "game": saves[0].game,
-                "timestamp": timestamp,
+                "repo_path": repo_path, "save_dir": game,
+                "game": saves[0].game, "timestamp": timestamp,
             }
-
             success = saver.save(all_files, metadata)
             if success:
-                self.terminal.write((f"✓ Backup para {saver.name()} concluído!\n", "ok"))
+                self.terminal.write((f"OK Backup para {saver.name()} concluido!\n", "ok"))
             else:
-                self.terminal.write((f"✗ Backup para {saver.name()} falhou.\n", "error"))
+                self.terminal.write((f"Falha Backup para {saver.name()} falhou.\n", "error"))
 
         self.progress.set_progress(100)
-        self.terminal.write(("\n✔ Processo finalizado! Seus saves estão seguros.\n", "ok"))
+        self.terminal.write(("\nProcesso finalizado! Seus saves estao seguros.\n", "ok"))

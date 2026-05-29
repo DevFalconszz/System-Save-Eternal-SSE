@@ -1,7 +1,8 @@
 import tkinter as tk
 from src.ui.styles import (
-    BG_DARK, FG_GREEN, FG_CYAN, FG_YELLOW, FG_DIM,
-    FONT_FAMILY, FONT_SIZE, apply_theme
+    BG_DARK, CRUST, SURFACE0, SURFACE1,
+    FG_GREEN, FG_CYAN, FG_YELLOW, FG_DIM, TEXT, FG_BLUE,
+    FONT_FAMILY, FONT_SIZE, rounded_rect,
 )
 
 
@@ -9,83 +10,64 @@ class WelcomeScreen(tk.Frame):
     def __init__(self, parent, on_backup, on_play, on_config, **kwargs):
         super().__init__(parent, bg=BG_DARK, **kwargs)
 
-        banner_lines = [
-            ("╔══════════════════════════════════════════════════╗", "green"),
-            ("║          SYSTEM SAVE ETERNAL - SSE              ║", "green"),
-            ("║     Backup Inteligente de Saves de Jogos        ║", "cyan"),
-            ("╚══════════════════════════════════════════════════╝", "green"),
-            ("", None),
-            ("  Sistema unificado  |  Linux  |  Windows  |  Android", "dim"),
-            ("", None),
+        # ── Banner ──
+        banner_frame = tk.Frame(self, bg=BG_DARK)
+        banner_frame.pack(pady=(30, 10))
+
+        lines = [
+            ("╭─────────────────────────────────────────────╮", FG_GREEN),
+            ("│           SYSTEM SAVE ETERNAL               │", FG_GREEN),
+            ("│               ~  SSE  ~                     │", FG_CYAN),
+            ("╰─────────────────────────────────────────────╯", FG_GREEN),
+        ]
+        for text, color in lines:
+            lbl = tk.Label(banner_frame, text=text, font=(FONT_FAMILY, FONT_SIZE),
+                           fg=color, bg=BG_DARK)
+            lbl.pack()
+
+        # ── Subtitle ──
+        tk.Label(
+            banner_frame,
+            text="Backup inteligente de saves  •  Linux  🐧  Windows  🪟  Android  📱",
+            font=(FONT_FAMILY, 10),
+            fg=FG_DIM, bg=BG_DARK
+        ).pack(pady=(6, 0))
+
+        # ── Center content ──
+        center = tk.Frame(self, bg=BG_DARK)
+        center.pack(expand=True)
+
+        btns = [
+            ("[1]  Fazer Backup de Saves", FG_GREEN,
+             lambda: self._confirm(on_backup, "Backup de Saves",
+                                   " Detecta automaticamente saves de Minecraft e Pokemon\n"
+                                   " Envia para GitHub, Google Drive e/ou Telegram\n"
+                                   " Mantem versionamento completo dos seus saves")),
+            ("[2]  Jogar Minecraft c/ Sincronizacao", FG_CYAN,
+             lambda: self._confirm(on_play, "Modo Jogar Minecraft",
+                                   " Detecta seu launcher automaticamente\n"
+                                   " Sincroniza saves antes de jogar\n"
+                                   " Monitora o jogo e salva ao fechar\n"
+                                   " Push automatico para GitHub")),
+            ("[3]  Configurar Destinos", FG_YELLOW, on_config),
         ]
 
-        for i, (text, color) in enumerate(banner_lines):
-            lbl = tk.Label(
-                self, text=text,
-                font=(FONT_FAMILY, FONT_SIZE),
-                anchor="w"
+        for text, color, cmd in btns:
+            btn = tk.Button(
+                center, text=text,
+                font=(FONT_FAMILY, 12, "bold"),
+                fg=color, bg=SURFACE0,
+                activeforeground=color, activebackground=SURFACE1,
+                relief=tk.FLAT, bd=0, padx=28, pady=10, cursor="hand2",
+                command=cmd
             )
-            if color == "green":
-                lbl.configure(fg=FG_GREEN)
-            elif color == "cyan":
-                lbl.configure(fg=FG_CYAN)
-            elif color == "dim":
-                lbl.configure(fg=FG_DIM)
-            else:
-                lbl.configure(fg=FG_GREEN)
-            apply_theme(lbl)
-            lbl.pack(pady=0 if text else 4)
+            btn.pack(pady=6, ipadx=20)
 
-        self.details = tk.Label(
-            self,
-            text="",
-            font=(FONT_FAMILY, 10),
-            fg=FG_YELLOW, bg=BG_DARK,
-            wraplength=500, justify="center"
-        )
-        self.details.pack(pady=(20, 5))
-
-        btn_frame = tk.Frame(self, bg=BG_DARK)
-        btn_frame.pack(pady=20)
-
-        btn_backup = tk.Button(
-            btn_frame, text="[1] Fazer Backup de Saves",
-            font=(FONT_FAMILY, FONT_SIZE + 2),
-            command=lambda: self._confirm(on_backup, "Backup de Saves",
-                                          "• Detecta automaticamente saves de Minecraft e Pokémon\n"
-                                          "• Envia para GitHub, Google Drive e/ou Telegram\n"
-                                          "• Mantém versionamento completo dos seus saves")
-        )
-        apply_theme(btn_backup)
-        btn_backup.pack(pady=6, ipadx=24, ipady=6)
-
-        btn_play = tk.Button(
-            btn_frame, text="[2] Jogar Minecraft com Sincronização",
-            font=(FONT_FAMILY, FONT_SIZE + 2),
-            command=lambda: self._confirm(on_play, "Modo Jogar Minecraft",
-                                          "• Detecta seu launcher automaticamente\n"
-                                          "• Sincroniza saves antes de jogar\n"
-                                          "• Monitora o jogo e salva ao fechar\n"
-                                          "• Push automático para GitHub")
-        )
-        apply_theme(btn_play)
-        btn_play.pack(pady=6, ipadx=24, ipady=6)
-
-        btn_config = tk.Button(
-            btn_frame, text="[3] Configurar Destinos",
-            font=(FONT_FAMILY, FONT_SIZE + 2),
-            command=on_config
-        )
-        apply_theme(btn_config)
-        btn_config.pack(pady=6, ipadx=24, ipady=6)
-
-        footer = tk.Label(
-            self,
-            text="Feito com 💾 para preservar o que importa.",
-            font=(FONT_FAMILY, 9),
-            fg=FG_DIM, bg=BG_DARK
-        )
-        footer.pack(side=tk.BOTTOM, pady=10)
+        # ── Footer ──
+        tk.Label(
+            self, text="Feito com 💾  para preservar o que importa.",
+            font=(FONT_FAMILY, 9), fg=FG_DIM, bg=BG_DARK
+        ).pack(side=tk.BOTTOM, pady=12)
 
     def _confirm(self, callback, title, details):
         import tkinter.messagebox as mb
