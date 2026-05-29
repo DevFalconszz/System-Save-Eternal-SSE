@@ -92,7 +92,7 @@ def apply_theme(widget, font_size=None):
     return widget
 
 
-def rounded_rect(canvas, x1, y1, x2, y2, radius=12, fill=BASE, outline=None):
+def rounded_rect(canvas, x1, y1, x2, y2, radius=12, fill=BASE, outline=None, width=1):
     points = []
     for coord in [
         (x1 + radius, y1, x2 - radius, y1),
@@ -103,5 +103,5 @@ def rounded_rect(canvas, x1, y1, x2, y2, radius=12, fill=BASE, outline=None):
         points.extend(coord)
     return canvas.create_polygon(
         points, smooth=True, fill=fill,
-        outline=outline or fill, width=1
+        outline=outline or fill, width=width
     )

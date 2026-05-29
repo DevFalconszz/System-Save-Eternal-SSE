@@ -45,17 +45,31 @@ class PlayScreen(tk.Frame):
         self.progress.pack(side=tk.LEFT)
 
         btn_row = tk.Frame(body, bg=BG_DARK)
-        btn_row.pack(pady=4)
+        btn_row.pack(fill=tk.X, pady=4)
 
-        self.start_btn = make_button(
-            btn_row, "\u25B6  Iniciar Ciclo Completo",
-            fg=FG_GREEN, bg=SURFACE0, font_size=11, bold=True,
-            padx=18, pady=6, command=self.start_play_cycle
+        back_btn = tk.Button(
+            btn_row, text="\u2190  Voltar",
+            font=(FONT_FAMILY, 10, "bold"),
+            fg=FG_DIM, bg=SURFACE0,
+            activeforeground=TEXT, activebackground=SURFACE1,
+            relief=tk.FLAT, bd=0, padx=12, pady=6, cursor="hand2",
+            command=on_back,
         )
+        back_btn.pack(side=tk.LEFT)
+        back_btn.bind("<Enter>", lambda e: back_btn.configure(
+            highlightthickness=2, highlightbackground=FG_CYAN))
+        back_btn.bind("<Leave>", lambda e: back_btn.configure(
+            highlightthickness=0))
 
-        make_button(btn_row, "\u2190  Voltar", fg=FG_DIM, bg=SURFACE0,
-                    font_size=10, bold=True, padx=10, pady=4,
-                    command=on_back, side=tk.LEFT)
+        self.start_btn = tk.Button(
+            btn_row, text="\u25B6  Iniciar Ciclo Completo",
+            font=(FONT_FAMILY, 11, "bold"),
+            fg=FG_GREEN, bg=SURFACE0,
+            activeforeground=FG_GREEN, activebackground=SURFACE1,
+            relief=tk.FLAT, bd=0, padx=18, pady=6, cursor="hand2",
+            command=self.start_play_cycle,
+        )
+        self.start_btn.pack(side=tk.RIGHT)
 
     def start_play_cycle(self):
         self.terminal.clear()

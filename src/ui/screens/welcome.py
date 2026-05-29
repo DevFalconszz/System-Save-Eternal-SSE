@@ -85,7 +85,7 @@ class WelcomeScreen(tk.Frame):
                      fg=color, bg=MANTLE).pack()
 
     def _build_card(self, parent, emoji, title, color, desc, command):
-        card = HoverCard(parent, command=command)
+        card = HoverCard(parent, command=command, no_hover=True)
         card.pack(pady=4, padx=22, fill=tk.X)
 
         body = card.body()
@@ -113,3 +113,23 @@ class WelcomeScreen(tk.Frame):
                   relief=tk.FLAT, bd=0, padx=8, cursor="hand2",
                   command=command
                   ).pack(side=tk.RIGHT, padx=(8, 0))
+
+        def lift_on(e):
+            card.configure(highlightthickness=2, highlightbackground=color)
+        def lift_off(e):
+            if e and e.x_root > 0:
+                rx = card.winfo_rootx()
+                ry = card.winfo_rooty()
+                if rx <= e.x_root <= rx + card.winfo_width() and \
+                   ry <= e.y_root <= ry + card.winfo_height():
+                    return
+            card.configure(highlightthickness=0, highlightbackground=SURFACE0)
+        def bind_lift(w):
+            try:
+                w.bind("<Enter>", lift_on, add="+")
+                w.bind("<Leave>", lift_off, add="+")
+            except Exception:
+                pass
+            for c in w.winfo_children():
+                bind_lift(c)
+        bind_lift(card)

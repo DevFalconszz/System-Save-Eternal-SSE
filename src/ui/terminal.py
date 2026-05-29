@@ -13,22 +13,26 @@ from src.ui.styles import (
 class TerminalOutput(tk.Frame):
     def __init__(self, parent, height=20, **kwargs):
         self._radius = 10
-        self._border = 2
+        self._bezel = 3
+        self._frame_w = 2
+        self._pad = 3
         super().__init__(parent, bg=BG_DARK, **kwargs)
+
+        self._canvas = tk.Canvas(
+            self, bg=BG_DARK, highlightthickness=0
+        )
+        self._canvas.place(x=0, y=0, relwidth=1, relheight=1)
 
         self.text = tk.Text(
             self, height=height,
             wrap=tk.WORD, state=tk.DISABLED,
-            padx=16, pady=10,
+            padx=10, pady=6,
             bg=BG_TERMINAL, fg=FG_GREEN,
             insertbackground=FG_GREEN,
             font=(FONT_FAMILY, FONT_SIZE),
             relief=tk.FLAT, bd=0, highlightthickness=0
         )
-        self.text.place(
-            x=self._border, y=self._border,
-            relwidth=1, relheight=1
-        )
+        self.text.place(x=0, y=0)
 
         self.scrollbar = tk.Canvas(
             self.text, width=10, bg=BG_TERMINAL,
@@ -51,26 +55,34 @@ class TerminalOutput(tk.Frame):
         self.write_queue = queue.Queue()
         self._poll_queue()
 
-        redraw = lambda e: self._draw_border()
-        self.bind("<Configure>", redraw)
+        self.bind("<Configure>", lambda e: self._draw_border())
 
     def _draw_border(self):
         w = self.winfo_width()
         h = self.winfo_height()
         if w < 20 or h < 20:
             return
-        self._border_canvas = tk.Canvas(
-            self, width=w, height=h, bg=BG_DARK,
-            highlightthickness=0
-        )
-        self._border_canvas.place(x=0, y=0)
+        self._canvas.delete("all")
+
+        bx = self._bezel
+        by = self._bezel
+        bw = w - 2 * self._bezel - 1
+        bh = h - 2 * self._bezel - 1
+
+        # screen border frame
         rounded_rect(
-            self._border_canvas, 1, 1,
-            w - 1, h - 1,
+            self._canvas, bx, by, bx + bw, by + bh,
             radius=self._radius,
-            fill=BG_TERMINAL, outline=SURFACE1
+            fill=BG_TERMINAL, outline=SURFACE1,
+            width=self._frame_w,
         )
-        self._border_canvas.lower()
+
+        inset = self._bezel + self._frame_w + self._pad
+        self.text.place_configure(
+            x=inset, y=inset,
+            width=w - 2 * inset,
+            height=h - 2 * inset
+        )
 
     def _update_scrollbar(self, event=None):
         try:

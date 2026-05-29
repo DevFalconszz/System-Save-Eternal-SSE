@@ -6,7 +6,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 from src.ui.styles import (
     BG_DARK, MANTLE, SURFACE0, SURFACE1,
     FG_GREEN, FG_RED, FG_CYAN, FG_DIM, TEXT,
-    FONT_FAMILY, apply_theme
+    FONT_FAMILY, apply_theme,
 )
 from src.ui.components import make_button, NavButton
 from src.ui.screens.welcome import WelcomeScreen
@@ -70,14 +70,25 @@ class SSEApp(tk.Tk):
         body = tk.Frame(self, bg=BG_DARK)
         body.pack(fill=tk.BOTH, expand=True)
 
-        side = tk.Frame(body, bg=MANTLE, width=170)
-        side.pack(side=tk.LEFT, fill=tk.Y)
-        side.pack_propagate(False)
+        self._side = tk.Frame(body, bg=MANTLE, width=180)
+        self._side.pack(side=tk.LEFT, fill=tk.Y)
+        self._side.pack_propagate(False)
 
-        tk.Label(side, text="◆  SSE",
-                 font=(FONT_FAMILY, 15, "bold"),
-                 fg=FG_GREEN, bg=MANTLE).pack(pady=(14, 18))
+        # canvas decorativo sobre a sidebar
+        self._side_cv = tk.Canvas(self._side, bg=MANTLE, highlightthickness=0)
+        self._side_cv.place(x=0, y=0, relwidth=1, relheight=1)
 
+        # --- Logo ---
+        logo_frame = tk.Frame(self._side, bg=MANTLE)
+        logo_frame.pack(fill=tk.X, pady=(18, 6))
+        tk.Label(logo_frame, text="SSE",
+                 font=(FONT_FAMILY, 16, "bold"),
+                 fg=FG_GREEN, bg=MANTLE).pack()
+        tk.Label(logo_frame, text="Launcher",
+                 font=(FONT_FAMILY, 8),
+                 fg=FG_DIM, bg=MANTLE).pack()
+
+        # --- Nav ---
         self._nav_btns = {}
         for nav_id, icon, label in (
             ("home", "⬡", "In\u00edcio"),
@@ -85,24 +96,35 @@ class SSEApp(tk.Tk):
             ("play", "\U0001F3AE", "Jogar"),
             ("config", "\u2699", "Config"),
         ):
-            nb = NavButton(side, icon, label,
+            nb = NavButton(self._side, icon, label,
                            command=lambda n=nav_id: self._nav_go(n))
             nb.pack(fill=tk.X, padx=4, pady=1)
             self._nav_btns[nav_id] = nb
 
-        spacer = tk.Frame(side, bg=MANTLE)
+        spacer = tk.Frame(self._side, bg=MANTLE)
         spacer.pack(expand=True)
 
-        NavButton(side, "\u2715", "Sair",
+        NavButton(self._side, "\u2715", "Sair",
                   fg=FG_DIM, activefg=FG_RED,
                   command=self._on_close).pack(fill=tk.X, padx=4, pady=1)
 
-        tk.Label(side, text="v2.0",
-                 font=(FONT_FAMILY, 8),
-                 fg=FG_DIM, bg=MANTLE).pack(side=tk.BOTTOM, pady=(0, 4))
+        tk.Label(self._side, text="v2.0",
+                 font=(FONT_FAMILY, 7),
+                 fg=FG_DIM, bg=MANTLE).pack(side=tk.BOTTOM, pady=(2, 6))
 
         self._content = tk.Frame(body, bg=BG_DARK)
         self._content.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        self._side.bind("<Configure>", lambda e: self._draw_side_border())
+
+    def _draw_side_border(self):
+        w = self._side.winfo_width()
+        h = self._side.winfo_height()
+        if w < 10 or h < 10:
+            return
+        cv = self._side_cv
+        cv.delete("all")
+        cv.create_line(w - 1, 0, w - 1, h, fill=SURFACE1, width=1)
 
     def _nav_go(self, nav_id):
         self._current_nav = nav_id

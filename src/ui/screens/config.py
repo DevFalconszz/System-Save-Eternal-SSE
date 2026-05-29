@@ -76,10 +76,19 @@ class ConfigScreen(tk.Frame):
                     command=self._save_field
                     ).pack(side=tk.LEFT, padx=(0, 8))
 
-        make_button(actions, "\u2190  Voltar", fg=FG_DIM, bg=SURFACE0,
-                    font_size=10, bold=True, padx=12, pady=4,
-                    command=on_back
-                    ).pack(side=tk.LEFT)
+        back_btn = tk.Button(
+            actions, text="\u2190  Voltar",
+            font=(FONT_FAMILY, 10, "bold"),
+            fg=FG_DIM, bg=SURFACE0,
+            activeforeground=TEXT, activebackground=SURFACE1,
+            relief=tk.FLAT, bd=0, padx=12, pady=6, cursor="hand2",
+            command=on_back,
+        )
+        back_btn.pack(side=tk.LEFT)
+        back_btn.bind("<Enter>", lambda e: back_btn.configure(
+            highlightthickness=2, highlightbackground=FG_CYAN))
+        back_btn.bind("<Leave>", lambda e: back_btn.configure(
+            highlightthickness=0))
 
         self._show_config_help()
 

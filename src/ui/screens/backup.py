@@ -55,10 +55,22 @@ class BackupScreen(tk.Frame):
         self.progress = ProgressBar(prog, width=280, height=12)
         self.progress.pack(side=tk.LEFT)
 
-        make_button(body, "\u2190  Voltar", fg=FG_DIM, bg=SURFACE0,
-                    font_size=10, bold=True, padx=12, pady=4,
-                    command=on_back
-                    ).pack(pady=(2, 0))
+        btn_row = tk.Frame(body, bg=BG_DARK)
+        btn_row.pack(fill=tk.X, pady=(4, 0))
+
+        back_btn = tk.Button(
+            btn_row, text="\u2190  Voltar",
+            font=(FONT_FAMILY, 10, "bold"),
+            fg=FG_DIM, bg=SURFACE0,
+            activeforeground=TEXT, activebackground=SURFACE1,
+            relief=tk.FLAT, bd=0, padx=12, pady=6, cursor="hand2",
+            command=on_back,
+        )
+        back_btn.pack(side=tk.LEFT)
+        back_btn.bind("<Enter>", lambda e: back_btn.configure(
+            highlightthickness=2, highlightbackground=FG_CYAN))
+        back_btn.bind("<Leave>", lambda e: back_btn.configure(
+            highlightthickness=0))
 
     def start_backup(self, game):
         self.terminal.clear()
