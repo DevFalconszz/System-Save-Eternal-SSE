@@ -1,0 +1,6 @@
+# Build dependencies (PyInstaller)
+pyinstaller>=6.0.0
+staticx>=0.14.0
+
+# Runtime (will be bundled by PyInstaller)
+-r requirements.txt

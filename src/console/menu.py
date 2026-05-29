@@ -53,6 +53,21 @@ def print_info(msg: str):
     print(f"  {Fore.CYAN}i{Style.RESET_ALL} {msg}")
 
 
+def print_transparency(action: str, details: list):
+    print(f"\n  {Fore.YELLOW}{'═' * 52}{Style.RESET_ALL}")
+    print(f"  {Fore.RED}⚠{Style.RESET_ALL} {Fore.YELLOW}SSE — {action}{Style.RESET_ALL}")
+    print(f"  {Fore.YELLOW}{'═' * 52}{Style.RESET_ALL}")
+    for line in details:
+        print(f"    {Fore.CYAN}•{Style.RESET_ALL} {line}")
+    print(f"  {Fore.YELLOW}{'═' * 52}{Style.RESET_ALL}")
+    print()
+
+
+def confirm_action(prompt: str = "Deseja continuar? (s/N): ") -> bool:
+    resp = input(f"  {Fore.CYAN}›{Style.RESET_ALL} {prompt}").strip().lower()
+    return resp == "s"
+
+
 def select_game() -> str:
     print()
     print(f"  {Fore.YELLOW}O que você deseja fazer?{Style.RESET_ALL}")
@@ -165,6 +180,15 @@ def configure_destination(dest_name: str):
 
 
 def configure_github():
+    print_transparency("Configuração GitHub", [
+        "O SSE irá usar um token de acesso para enviar saves ao seu repositório.",
+        "O token será armazenado em ~/.config/sse/config.json (apenas local).",
+        "Escopo necessário: 'repo' (controle total de repositórios privados).",
+        "Nunca compartilhe este token — ele dá acesso ao seu repositório.",
+    ])
+    if not confirm_action("Deseja configurar o GitHub? (s/N): "):
+        print_info("Configuração do GitHub cancelada.")
+        return
     print(f"\n  {Fore.CYAN}--- Configuração: GitHub ---{Style.RESET_ALL}")
     print()
 
@@ -218,6 +242,17 @@ def configure_github():
 
 
 def configure_google_drive():
+    print_transparency("Configuração Google Drive", [
+        "O SSE irá autenticar com sua conta Google via OAuth 2.0.",
+        "Será aberto um navegador para você autorizar o acesso.",
+        "O SSE poderá criar pastas e fazer upload de arquivos no seu Drive.",
+        "As credenciais serão armazenadas em ~/.config/sse/.",
+        "Você pode revogar o acesso a qualquer momento em:",
+        "  https://myaccount.google.com/permissions",
+    ])
+    if not confirm_action("Deseja configurar o Google Drive? (s/N): "):
+        print_info("Configuração do Google Drive cancelada.")
+        return
     print(f"\n  {Fore.CYAN}--- Configuração: Google Drive ---{Style.RESET_ALL}")
     print()
     print_info("Para usar o Google Drive, você precisa das credenciais da API do Google.")
@@ -240,6 +275,16 @@ def configure_google_drive():
 
 
 def configure_telegram():
+    print_transparency("Configuração Telegram", [
+        "O SSE usará a API MTProto do Telegram para enviar mensagens.",
+        "Será necessário informar seu número de telefone e código de verificação.",
+        "Os saves serão enviados para Saved Messages (ou chat específico).",
+        "A sessão será salva em ~/.config/sse/telegram.session.",
+        "Nunca compartilhe seu api_hash — ele é sua chave secreta.",
+    ])
+    if not confirm_action("Deseja configurar o Telegram? (s/N): "):
+        print_info("Configuração do Telegram cancelada.")
+        return
     print(f"\n  {Fore.CYAN}--- Configuração: Telegram ---{Style.RESET_ALL}")
     print()
     print_info("Para usar o Telegram, você precisa do API ID e API Hash.")
@@ -285,6 +330,16 @@ def get_repo_path() -> Optional[str]:
 
 
 def sync_to_repo(selected_saves: List[SaveEntry], repo_path: str) -> bool:
+    total_size = sum(s.size_bytes for s in selected_saves)
+    print_transparency("Cópia de Saves", [
+        f"{len(selected_saves)} save(s) serão copiados para: {repo_path}",
+        f"Tamanho total: {human_size(total_size)}",
+        "Os saves originais NÃO serão modificados ou deletados.",
+        "Apenas uma cópia será feita para o repositório local.",
+    ])
+    if not confirm_action("Confirmar cópia dos saves? (s/N): "):
+        print_info("Operação cancelada.")
+        return False
     print()
     print_step(3, 3, "Sincronizando saves para o repositório local...")
 

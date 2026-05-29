@@ -97,7 +97,7 @@ class PokemonFinder(GameFinder):
                                 name=fname,
                                 path=fpath,
                                 game=self._detect_pokemon_game(fname),
-                                platform="Desconhecido",
+                                platform="Unknown (system scan)",
                                 size_bytes=os.path.getsize(fpath),
                                 files=[fpath]
                             ))
@@ -166,5 +166,5 @@ class PokemonFinder(GameFinder):
         if "sapphire" in name:
             return "Pokémon Sapphire"
         if "pokemon" in name or "pokémon" in name or "pkmn" in name:
-            return "Pokémon (não identificado)"
-        return "Pokémon (não identificado)"
+            return "Pokémon (unidentified)"
+        return "Pokémon (unidentified)"

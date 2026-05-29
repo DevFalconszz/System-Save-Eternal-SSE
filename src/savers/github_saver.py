@@ -28,6 +28,12 @@ class GitHubSaver(Saver):
     def save(self, file_paths: List[str], metadata: dict) -> bool:
         repo_path = metadata.get("repo_path", "")
         if not repo_path or not os.path.isdir(repo_path):
+            print(f"  [GitHub] Transparência: enviando saves para repositório remoto.")
+            print(f"  [GitHub] Ações que serão realizadas:")
+            print(f"    • git add -A (adicionar todos os arquivos)")
+            print(f"    • git commit (criar um commit com timestamp)")
+            print(f"    • git push (enviar para o repositório remoto)")
+            print(f"    • Repositório: {self.repo_url}")
             print(f"  [GitHub] Erro: Caminho do repositório inválido: {repo_path}")
             return False
 
@@ -98,6 +104,10 @@ class GitHubSaver(Saver):
             print(f"  [GitHub] Erro: Caminho do repositório inválido: {repo_path}")
             return False
 
+        print(f"  [GitHub] Transparência: baixando saves mais recentes do repositório.")
+        print(f"  [GitHub] Ações que serão realizadas:")
+        print(f"    • git pull --rebase (baixar alterações remotas)")
+        print(f"    • Repositório: {self.repo_url}")
         print(f"  [GitHub] Sincronizando saves mais recentes...")
         try:
             remote_url = self._build_remote_url()
@@ -129,7 +139,8 @@ class GitHubSaver(Saver):
     def _build_remote_url(self) -> str:
         if self.token and self.repo_url:
             repo_path_part = self.repo_url.replace("https://github.com/", "").replace(".git", "")
-            return f"https://DevFalconszz:{self.token}@github.com/{repo_path_part}.git"
+            username = self.repo_url.split("github.com/")[-1].split("/")[0]
+            return f"https://{username}:{self.token}@github.com/{repo_path_part}.git"
         return ""
 
     @staticmethod
