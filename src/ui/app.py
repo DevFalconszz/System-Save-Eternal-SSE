@@ -145,8 +145,8 @@ class SSEApp(tk.Tk):
         self._current_frame.pack(fill=tk.BOTH, expand=True)
 
     def _on_close(self):
-        import tkinter.messagebox as mb
-        if mb.askokcancel("SSE", "Deseja realmente sair?"):
+        from src.ui.dialog import SSEDialog
+        if SSEDialog.confirm(self, "Sair", "Deseja realmente sair do SSE?"):
             self.destroy()
 
 

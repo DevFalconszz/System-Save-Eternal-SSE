@@ -70,11 +70,11 @@ class WelcomeScreen(tk.Frame):
         ).pack(side=tk.BOTTOM, pady=12)
 
     def _confirm(self, callback, title, details):
-        import tkinter.messagebox as mb
-        result = mb.askyesno(
-            title=f"SSE — {title}",
-            message=f"{details}\n\nDeseja continuar?",
-            icon="question"
+        from src.ui.dialog import SSEDialog
+        result = SSEDialog.confirm(
+            self.winfo_toplevel(),
+            title,
+            f"{details}\n\n Deseja continuar?"
         )
         if result:
             callback()
