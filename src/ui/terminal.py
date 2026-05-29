@@ -38,7 +38,7 @@ class TerminalOutput(tk.Frame):
         for tag, color in self._tag_colors.items():
             self.text.tag_configure(tag, foreground=color)
 
-        self.tag_configure("bold", font=(FONT_FAMILY, FONT_SIZE, "bold"))
+        self.text.tag_configure("bold", font=(FONT_FAMILY, FONT_SIZE, "bold"))
 
         self.write_queue = queue.Queue()
         self._poll_queue()

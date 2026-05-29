@@ -18,8 +18,8 @@ class SSEApp(tk.Tk):
         self.configure(bg=BG_DARK)
         apply_theme(self)
 
-        self.geometry("750x600")
-        self.minsize(650, 500)
+        self.geometry("750x620")
+        self.minsize(650, 520)
 
         try:
             self.iconbitmap(default=os.path.join(
@@ -29,9 +29,32 @@ class SSEApp(tk.Tk):
             pass
 
         self._current_frame = None
+        self._build_bottom_bar()
         self._show_welcome()
 
         self.protocol("WM_DELETE_WINDOW", self._on_close)
+
+    def _build_bottom_bar(self):
+        bar = tk.Frame(self, bg="#0d1117", height=36)
+        bar.pack(side=tk.BOTTOM, fill=tk.X)
+        bar.pack_propagate(False)
+
+        status = tk.Label(
+            bar, text="SSE v2.0  |  Linux / Windows / Android",
+            font=("Courier", 9),
+            fg="#484f58", bg="#0d1117"
+        )
+        status.pack(side=tk.LEFT, padx=10)
+
+        btn_sair = tk.Button(
+            bar, text="[ Sair ]",
+            font=("Courier", 9, "bold"),
+            fg="#ff3333", bg="#1a1a2e",
+            activeforeground="#ff6666", activebackground="#2a2a4e",
+            relief=tk.FLAT, bd=0, padx=10, cursor="hand2",
+            command=self._on_close
+        )
+        btn_sair.pack(side=tk.RIGHT, padx=6, pady=4)
 
     def _clear(self):
         if self._current_frame:
