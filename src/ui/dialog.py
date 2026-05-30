@@ -2,7 +2,7 @@ import tkinter as tk
 from src.ui.styles import (
     BG_DARK, CRUST, SURFACE0, SURFACE1, SURFACE2,
     FG_GREEN, FG_RED, FG_YELLOW, FG_CYAN, FG_DIM, TEXT,
-    FONT_FAMILY, FONT_SIZE, rounded_rect,
+    FONT_FAMILY, FONT_SIZE,
 )
 
 
@@ -11,11 +11,9 @@ class SSEDialog(tk.Toplevel):
                  confirm_text="Confirmar", cancel_text="Cancelar",
                  icon_color=FG_YELLOW, icon_symbol="?"):
         super().__init__(parent)
-        self.withdraw()
         self.title("SSE")
         self.configure(bg=BG_DARK)
         self.resizable(False, False)
-        self.attributes("-type", "dialog")
         self.transient(parent)
         self.grab_set()
 
@@ -87,6 +85,12 @@ class SSEDialog(tk.Toplevel):
         self.geometry(f"{w}x{h}+{pw + (pww - w) // 2}+{ph + (phh - h) // 2}")
 
         self.deiconify()
+        self.attributes("-topmost", True)
+        self.lift()
+        self.focus_force()
+        self.after(50, lambda: self.attributes("-topmost", False))
+        self.tk.call("focus", "-force", self._w)
+        self.grab_set()
         self.wait_window()
 
     def _confirm(self):

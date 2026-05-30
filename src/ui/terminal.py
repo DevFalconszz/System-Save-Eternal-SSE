@@ -30,7 +30,8 @@ class TerminalOutput(tk.Frame):
             bg=BG_TERMINAL, fg=FG_GREEN,
             insertbackground=FG_GREEN,
             font=(FONT_FAMILY, FONT_SIZE),
-            relief=tk.FLAT, bd=0, highlightthickness=0
+            relief=tk.FLAT, bd=0, highlightthickness=0,
+            takefocus=0,
         )
         self.text.place(x=0, y=0)
 
